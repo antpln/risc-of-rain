@@ -1,5 +1,5 @@
-#[derive(Debug)]
-enum Instruction {
+#[derive(Debug, Clone, Copy)]
+pub enum Instruction {
     ADD { rd: usize, rs1: usize, rs2: usize },
     SUB { rd: usize, rs1: usize, rs2: usize },
     LOAD { rd: usize, rs1: usize, imm: i32 },
@@ -23,6 +23,7 @@ pub struct CPU {
     memory: [i32; 256],
     cycle_count: u64,
     pipeline: Pipeline,
+    instruction_memory: Vec<Instruction>, // Empty program memory
 }
 
 impl CPU {
@@ -38,11 +39,26 @@ impl CPU {
                 ex_mem: None,
                 mem_wb: None,
             },
+            instruction_memory: Vec::new(), // Empty program memory
+        }
+    }
+
+    pub fn load_program(&mut self, program: Vec<Instruction>) {
+        self.instruction_memory = program; // Load program into instruction memory
+    }
+
+    pub fn set_register(&mut self, index: usize, value: i32) {
+        if index < self.registers.len() {
+            self.registers[index] = value;
         }
     }
 
     fn fetch(&mut self) {
-        self.pipeline.if_id = Some(self.fetch_inst());
+        if self.pc < self.instruction_memory.len() {
+            self.pipeline.if_id = Some(self.instruction_memory[self.pc]); // Read instruction from memory
+        } else {
+            self.pipeline.if_id = Some(Instruction::NOP);  // If out of bounds, return NOP
+        }
     }
 
     fn fetch_inst(&self) -> Instruction {
@@ -74,6 +90,9 @@ impl CPU {
             match inst {
                 Instruction::ADD { rd, rs1, rs2 } => {
                     self.registers[rd] = self.registers[rs1] + self.registers[rs2];
+                }
+                Instruction::SUB { rd, rs1, rs2 } => {
+                    self.registers[rd] = self.registers[rs1] - self.registers[rs2];
                 }
                 _ => {}
             }
