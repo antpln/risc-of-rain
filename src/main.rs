@@ -9,7 +9,7 @@ fn main() {
 
     // Multiplication program using ADDI and ADD instructions
     // r1 = multiplicand, r2 = multiplier, r3 = result
-    cpu.set_register(2, 4);
+    cpu.set_register(2, 5);
     cpu.set_register(1, 5);
     let program = vec![
         // 0: Initialize r3 = 0.
